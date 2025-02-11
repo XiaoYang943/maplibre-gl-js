@@ -7,7 +7,7 @@ import {GlyphManager} from '../render/glyph_manager';
 import {Light} from './light';
 import {Sky} from './sky';
 import {LineAtlas} from '../render/line_atlas';
-import {clone, extend, deepEqual, filterObject, mapObject} from '../util/util';
+import {clone, extend, deepEqual, filterObject, mapObject, uniqueId} from '../util/util';
 import {coerceSpriteToArray} from '../util/style';
 import {getJSON, getReferrer} from '../util/ajax';
 import {ResourceType} from '../util/request_manager';
@@ -238,7 +238,7 @@ export class Style extends Evented {
         super();
 
         this.map = map;
-        this.dispatcher = new Dispatcher(getGlobalWorkerPool(), map._getMapId());
+        this.dispatcher = new Dispatcher(getGlobalWorkerPool(), uniqueId());
         this.dispatcher.registerMessageHandler(MessageType.getGlyphs, (mapId, params) => {
             return this.getGlyphs(mapId, params);
         });
@@ -364,7 +364,7 @@ export class Style extends Evented {
 
         this.sky = new Sky(this.stylesheet.sky);
 
-        this.map.setTerrain(this.stylesheet.terrain ?? null);
+        // this.map.setTerrain(this.stylesheet.terrain ?? null);
 
         this.fire(new Event('data', {dataType: 'style'}));
         this.fire(new Event('style.load'));
@@ -394,7 +394,7 @@ export class Style extends Evented {
 
         this._spriteRequest = new AbortController();
         let err: Error;
-        loadSprite(sprite, this.map._requestManager, this.map.getPixelRatio(), this._spriteRequest).then((images) => {
+        loadSprite(sprite, this.map._requestManager, 1, this._spriteRequest).then((images) => {
             this._spriteRequest = null;
             if (images) {
                 for (const spriteId in images) {
@@ -1585,7 +1585,7 @@ export class Style extends Evented {
     _setProjectionInternal(name: ProjectionSpecification['type']) {
         const projectionObjects = createProjectionFromName(name);
         this.projection = projectionObjects.projection;
-        this.map.migrateProjection(projectionObjects.transform, projectionObjects.cameraHelper);
+        // this.map.migrateProjection(projectionObjects.transform, projectionObjects.cameraHelper);
         for (const key in this.sourceCaches) {
             this.sourceCaches[key].reload();
         }

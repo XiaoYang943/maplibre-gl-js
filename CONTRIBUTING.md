@@ -61,7 +61,7 @@ brew install node
 
 Clone the repository
 ```bash
-git clone git@github.com:maplibre/maplibre-gl-js.git
+git clone git@github.com:maplibre/maplibre-gl.git
 ```
 
 Install dependencies for node_canvas (https://github.com/Automattic/node-canvas)
@@ -71,7 +71,7 @@ brew install pkg-config cairo pango libpng jpeg giflib librsvg
 
 Install node module dependencies
 ```bash
-cd maplibre-gl-js &&
+cd maplibre-gl &&
 npm install
 ```
 
@@ -122,12 +122,12 @@ nvm install
 
 Clone the repository
 ```bash
-git clone git@github.com:maplibre/maplibre-gl-js.git
+git clone git@github.com:maplibre/maplibre-gl.git
 ```
 
 Install node module dependencies
 ```bash
-cd maplibre-gl-js &&
+cd maplibre-gl &&
 npm install
 ```
 
@@ -142,12 +142,12 @@ Install [git](https://git-scm.com/), [node.js](https://nodejs.org/) (version in 
 
 Clone the repository
 ```bash
-git clone git@github.com:maplibre/maplibre-gl-js.git
+git clone git@github.com:maplibre/maplibre-gl.git
 ```
 
 Install node module dependencies
 ```bash
-cd maplibre-gl-js
+cd maplibre-gl
 npm install
 ```
 

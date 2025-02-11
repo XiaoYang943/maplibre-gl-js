@@ -9,7 +9,7 @@ import {RollupOptions} from 'rollup';
 
 /**
  * This script generates the benchmark bundles for the benchmark suite.
- * It does it by replacing the index.ts file of maplibre-gl-js with a local index.ts file that registers the relevant benchmarks.
+ * It does it by replacing the index.ts file of maplibre-gl with a local index.ts file that registers the relevant benchmarks.
  * The thing to note here is that the index.ts file of the benchmarks needs to export the same thing the original index.ts file is exporting.
  */
 

@@ -137,7 +137,7 @@ export class VectorTileSource extends Evented implements Source {
 
     onAdd(map: Map) {
         this.map = map;
-        this.load();
+        // this.load();
     }
 
     setSourceProperty(callback: Function) {
@@ -147,7 +147,7 @@ export class VectorTileSource extends Evented implements Source {
 
         callback();
 
-        this.load();
+        // this.load();
     }
 
     /**
@@ -189,7 +189,7 @@ export class VectorTileSource extends Evented implements Source {
     }
 
     async loadTile(tile: Tile): Promise<void> {
-        const url = tile.tileID.canonical.url(this.tiles, this.map.getPixelRatio(), this.scheme);
+        const url = tile.tileID.canonical.url(this.tiles, 1, this.scheme);
         const params: WorkerTileParameters = {
             request: this.map._requestManager.transformRequest(url, ResourceType.Tile),
             uid: tile.uid,
@@ -236,20 +236,20 @@ export class VectorTileSource extends Evented implements Source {
     }
 
     private _afterTileLoadWorkerResponse(tile: Tile, data: WorkerTileResult) {
-        if (data && data.resourceTiming) {
-            tile.resourceTiming = data.resourceTiming;
-        }
-
-        if (data && this.map._refreshExpiredTiles) {
-            tile.setExpiryData(data);
-        }
-        tile.loadVectorData(data, this.map.painter);
-
-        if (tile.reloadPromise) {
-            const reloadPromise = tile.reloadPromise;
-            tile.reloadPromise = null;
-            this.loadTile(tile).then(reloadPromise.resolve).catch(reloadPromise.reject);
-        }
+        // if (data && data.resourceTiming) {
+        //     tile.resourceTiming = data.resourceTiming;
+        // }
+        //
+        // if (data && this.map._refreshExpiredTiles) {
+        //     tile.setExpiryData(data);
+        // }
+        // tile.loadVectorData(data, this.map.painter);
+        //
+        // if (tile.reloadPromise) {
+        //     const reloadPromise = tile.reloadPromise;
+        //     tile.reloadPromise = null;
+        //     this.loadTile(tile).then(reloadPromise.resolve).catch(reloadPromise.reject);
+        // }
     }
 
     async abortTile(tile: Tile): Promise<void> {

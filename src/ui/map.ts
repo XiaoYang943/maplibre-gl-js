@@ -1,7 +1,7 @@
 import {extend, warnOnce, uniqueId, isImageBitmap, type Complete, pick, type Subscription} from '../util/util';
 import {browser} from '../util/browser';
 import {DOM} from '../util/dom';
-import packageJSON from '../../package.json' with {type: 'json'};
+// import packageJSON from '../../package.json' with {type: 'json'};
 import {type GetResourceResponse, getJSON} from '../util/ajax';
 import {ImageRequest} from '../util/image_request';
 import {RequestManager, ResourceType} from '../util/request_manager';
@@ -67,7 +67,7 @@ import {MercatorCameraHelper} from '../geo/projection/mercator_camera_helper';
 import {isAbortError} from '../util/abort_error';
 import {isFramebufferNotCompleteError} from '../util/framebuffer_error';
 
-const version = packageJSON.version;
+const version = "1.0.0";
 
 type WebGLSupportedVersions = 'webgl2' | 'webgl' | undefined;
 type WebGLContextAttributesWithType = WebGLContextAttributes & {contextType?: WebGLSupportedVersions};
@@ -381,7 +381,7 @@ const defaultMaxPitch = 60;
 // use this variable to check maxPitch for validity
 const maxPitchThreshold = 180;
 
-const defaultOptions: Readonly<Partial<MapOptions>> = {
+export const defaultOptions: Readonly<Partial<MapOptions>> = {
     hash: false,
     interactive: true,
     bearingSnap: 7,
@@ -593,7 +593,6 @@ export class Map extends Camera {
 
     constructor(options: MapOptions) {
         PerformanceUtils.mark(PerformanceMarkers.create);
-
         const resolvedOptions = {...defaultOptions, ...options, canvasContextAttributes: {
             ...defaultOptions.canvasContextAttributes,
             ...options.canvasContextAttributes
@@ -660,108 +659,108 @@ export class Map extends Camera {
 
         this._requestManager = new RequestManager(resolvedOptions.transformRequest);
 
-        if (typeof resolvedOptions.container === 'string') {
-            this._container = document.getElementById(resolvedOptions.container);
-            if (!this._container) {
-                throw new Error(`Container '${resolvedOptions.container}' not found.`);
-            }
-        } else if (resolvedOptions.container instanceof HTMLElement) {
-            this._container = resolvedOptions.container;
-        } else {
-            throw new Error('Invalid type: \'container\' must be a String or HTMLElement.');
-        }
+        // if (typeof resolvedOptions.container === 'string') {
+        //     this._container = document.getElementById(resolvedOptions.container);
+        //     if (!this._container) {
+        //         throw new Error(`Container '${resolvedOptions.container}' not found.`);
+        //     }
+        // } else if (resolvedOptions.container instanceof HTMLElement) {
+        //     this._container = resolvedOptions.container;
+        // } else {
+        //     throw new Error('Invalid type: \'container\' must be a String or HTMLElement.');
+        // }
+        //
+        // if (resolvedOptions.maxBounds) {
+        //     this.setMaxBounds(resolvedOptions.maxBounds);
+        // }
 
-        if (resolvedOptions.maxBounds) {
-            this.setMaxBounds(resolvedOptions.maxBounds);
-        }
+        // this._setupContainer();
+        // this._setupPainter();
 
-        this._setupContainer();
-        this._setupPainter();
-
-        this.on('move', () => this._update(false));
-        this.on('moveend', () => this._update(false));
-        this.on('zoom', () => this._update(true));
-        this.on('terrain', () => {
-            this.painter.terrainFacilitator.dirty = true;
-            this._update(true);
-        });
-        this.once('idle', () => { this._idleTriggered = true; });
-
-        if (typeof window !== 'undefined') {
-            addEventListener('online', this._onWindowOnline, false);
-            let initialResizeEventCaptured = false;
-            const throttledResizeCallback = throttle((entries: ResizeObserverEntry[]) => {
-                if (this._trackResize && !this._removed) {
-                    this.resize(entries);
-                    this.redraw();
-                }
-            }, 50);
-            this._resizeObserver = new ResizeObserver((entries) => {
-                if (!initialResizeEventCaptured) {
-                    initialResizeEventCaptured = true;
-                    return;
-                }
-                throttledResizeCallback(entries);
-            });
-            this._resizeObserver.observe(this._container);
-        }
-
-        this.handlers = new HandlerManager(this, resolvedOptions);
-
-        const hashName = (typeof resolvedOptions.hash === 'string' && resolvedOptions.hash) || undefined;
-        this._hash = resolvedOptions.hash && (new Hash(hashName)).addTo(this);
-        // don't set position from options if set through hash
-        if (!this._hash || !this._hash._onHashChange()) {
-            this.jumpTo({
-                center: resolvedOptions.center,
-                elevation: resolvedOptions.elevation,
-                zoom: resolvedOptions.zoom,
-                bearing: resolvedOptions.bearing,
-                pitch: resolvedOptions.pitch,
-                roll: resolvedOptions.roll
-            });
-
-            if (resolvedOptions.bounds) {
-                this.resize();
-                this.fitBounds(resolvedOptions.bounds, extend({}, resolvedOptions.fitBoundsOptions, {duration: 0}));
-            }
-        }
-
-        // When no style is set or it's using something other than the globe projection, we can constrain the camera.
-        // When a style is set with other projections though, we can't constrain the camera until the style is loaded
-        // and the correct transform is used. Otherwise, valid points in the desired projection could be rejected
-        const shouldConstrainUsingMercatorTransform = typeof resolvedOptions.style === 'string' || !(resolvedOptions.style?.projection?.type === 'globe');
-        this.resize(null, shouldConstrainUsingMercatorTransform);
-
-        this._localIdeographFontFamily = resolvedOptions.localIdeographFontFamily;
-        this._validateStyle = resolvedOptions.validateStyle;
-
-        if (resolvedOptions.style) this.setStyle(resolvedOptions.style, {localIdeographFontFamily: resolvedOptions.localIdeographFontFamily});
-
-        if (resolvedOptions.attributionControl)
-            this.addControl(new AttributionControl(typeof resolvedOptions.attributionControl === 'boolean' ? undefined : resolvedOptions.attributionControl));
-
-        if (resolvedOptions.maplibreLogo)
-            this.addControl(new LogoControl(), resolvedOptions.logoPosition);
-
-        this.on('style.load', () => {
-            // If we didn't constrain the camera before, we do it now
-            if (!shouldConstrainUsingMercatorTransform) this._resizeTransform();
-            if (this.transform.unmodified) {
-                const coercedOptions = pick(this.style.stylesheet, ['center', 'zoom', 'bearing', 'pitch', 'roll']) as CameraOptions;
-                this.jumpTo(coercedOptions);
-            }
-        });
-        this.on('data', (event: MapDataEvent) => {
-            this._update(event.dataType === 'style');
-            this.fire(new Event(`${event.dataType}data`, event));
-        });
-        this.on('dataloading', (event: MapDataEvent) => {
-            this.fire(new Event(`${event.dataType}dataloading`, event));
-        });
-        this.on('dataabort', (event: MapDataEvent) => {
-            this.fire(new Event('sourcedataabort', event));
-        });
+        // this.on('move', () => this._update(false));
+        // this.on('moveend', () => this._update(false));
+        // this.on('zoom', () => this._update(true));
+        // this.on('terrain', () => {
+        //     this.painter.terrainFacilitator.dirty = true;
+        //     this._update(true);
+        // });
+        // this.once('idle', () => { this._idleTriggered = true; });
+        //
+        // if (typeof window !== 'undefined') {
+        //     addEventListener('online', this._onWindowOnline, false);
+        //     let initialResizeEventCaptured = false;
+        //     const throttledResizeCallback = throttle((entries: ResizeObserverEntry[]) => {
+        //         if (this._trackResize && !this._removed) {
+        //             this.resize(entries);
+        //             this.redraw();
+        //         }
+        //     }, 50);
+        //     this._resizeObserver = new ResizeObserver((entries) => {
+        //         if (!initialResizeEventCaptured) {
+        //             initialResizeEventCaptured = true;
+        //             return;
+        //         }
+        //         throttledResizeCallback(entries);
+        //     });
+        //     this._resizeObserver.observe(this._container);
+        // }
+        //
+        // this.handlers = new HandlerManager(this, resolvedOptions);
+        //
+        // const hashName = (typeof resolvedOptions.hash === 'string' && resolvedOptions.hash) || undefined;
+        // this._hash = resolvedOptions.hash && (new Hash(hashName)).addTo(this);
+        // // don't set position from options if set through hash
+        // if (!this._hash || !this._hash._onHashChange()) {
+        //     this.jumpTo({
+        //         center: resolvedOptions.center,
+        //         elevation: resolvedOptions.elevation,
+        //         zoom: resolvedOptions.zoom,
+        //         bearing: resolvedOptions.bearing,
+        //         pitch: resolvedOptions.pitch,
+        //         roll: resolvedOptions.roll
+        //     });
+        //
+        //     if (resolvedOptions.bounds) {
+        //         this.resize();
+        //         this.fitBounds(resolvedOptions.bounds, extend({}, resolvedOptions.fitBoundsOptions, {duration: 0}));
+        //     }
+        // }
+        //
+        // // When no style is set or it's using something other than the globe projection, we can constrain the camera.
+        // // When a style is set with other projections though, we can't constrain the camera until the style is loaded
+        // // and the correct transform is used. Otherwise, valid points in the desired projection could be rejected
+        // const shouldConstrainUsingMercatorTransform = typeof resolvedOptions.style === 'string' || !(resolvedOptions.style?.projection?.type === 'globe');
+        // this.resize(null, shouldConstrainUsingMercatorTransform);
+        //
+        // this._localIdeographFontFamily = resolvedOptions.localIdeographFontFamily;
+        // this._validateStyle = resolvedOptions.validateStyle;
+        //
+        // if (resolvedOptions.style) this.setStyle(resolvedOptions.style, {localIdeographFontFamily: resolvedOptions.localIdeographFontFamily});
+        //
+        // if (resolvedOptions.attributionControl)
+        //     this.addControl(new AttributionControl(typeof resolvedOptions.attributionControl === 'boolean' ? undefined : resolvedOptions.attributionControl));
+        //
+        // if (resolvedOptions.maplibreLogo)
+        //     this.addControl(new LogoControl(), resolvedOptions.logoPosition);
+        //
+        // this.on('style.load', () => {
+        //     // If we didn't constrain the camera before, we do it now
+        //     if (!shouldConstrainUsingMercatorTransform) this._resizeTransform();
+        //     if (this.transform.unmodified) {
+        //         const coercedOptions = pick(this.style.stylesheet, ['center', 'zoom', 'bearing', 'pitch', 'roll']) as CameraOptions;
+        //         this.jumpTo(coercedOptions);
+        //     }
+        // });
+        // this.on('data', (event: MapDataEvent) => {
+        //     this._update(event.dataType === 'style');
+        //     this.fire(new Event(`${event.dataType}data`, event));
+        // });
+        // this.on('dataloading', (event: MapDataEvent) => {
+        //     this.fire(new Event(`${event.dataType}dataloading`, event));
+        // });
+        // this.on('dataabort', (event: MapDataEvent) => {
+        //     this.fire(new Event('sourcedataabort', event));
+        // });
     }
 
     /**

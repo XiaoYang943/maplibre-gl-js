@@ -142,7 +142,6 @@ export type SourceClass = {
  * @returns a newly created source
  */
 export const create = (id: string, specification: SourceSpecification | CanvasSourceSpecification, dispatcher: Dispatcher, eventedParent: Evented): Source => {
-
     const Class = getSourceType(specification.type);
     const source = new Class(id, specification, dispatcher, eventedParent);
 
